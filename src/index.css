@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply min-h-dvh bg-cream font-sans text-ink;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-deep-pink;
+  }
+
+  .sr-only {
+    @apply absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0;
+    clip: rect(0, 0, 0, 0);
+    margin: -1px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex min-h-12 min-w-[3rem] items-center justify-center rounded-full
+      border-4 border-deep-pink/30 bg-deep-pink px-8 py-3 font-display text-lg font-semibold
+      text-white shadow-soft transition-transform duration-200
+      motion-safe:hover:scale-105 motion-safe:active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-12 min-w-[3rem] items-center justify-center rounded-full
+      border-4 border-pink/50 bg-white px-6 py-3 font-display font-semibold text-ink
+      shadow-soft transition-transform duration-200 motion-safe:hover:scale-105 motion-safe:active:scale-95;
+  }
+
+  .screen-shell {
+    @apply relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 py-6;
+  }
+
+  .booth-cabinet {
+    @apply rounded-[2rem] border-4 border-pink/60 bg-gradient-to-b from-white to-pink/20 shadow-soft-lg;
+  }
+
+  .booth-curtain {
+    @apply -mt-2 mb-3 h-8 rounded-b-3xl bg-gradient-to-b from-deep-pink/80 to-pink/40;
+  }
+
+  .shutter-btn {
+    @apply h-[72px] w-[72px] rounded-full border-[6px] border-white bg-deep-pink shadow-soft-lg
+      ring-4 ring-deep-pink/30 transition-transform motion-safe:hover:scale-105 motion-safe:active:scale-90
+      disabled:opacity-50;
+  }
+
+  .flash-overlay {
+    @apply pointer-events-none absolute inset-0 z-30 bg-white motion-safe:animate-flash;
+  }
+}
+
+.app-bg {
+  background: linear-gradient(
+    160deg,
+    #fff8f0 0%,
+    #ffe8f0 35%,
+    #f0e8ff 70%,
+    #e8faf2 100%
+  );
+}
+
+/* Screen fade + slide */
+.screen-in {
+  animation: screenIn 0.35s ease-out forwards;
+}
+
+.screen-out {
+  animation: screenOut 0.22s ease-in forwards;
+}
+
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes screenOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes decorFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(6deg);
+  }
+}
+
+.decor-float {
+  animation: decorFloat 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .decor-float {
+    animation: none;
+  }
+}
