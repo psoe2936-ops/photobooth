@@ -6,10 +6,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 export function useCamera(enabled) {
   const videoRef = useRef(null)
   const streamRef = useRef(null)
+  const requestRef = useRef(0) // id of the latest start/stop call
   const [status, setStatus] = useState('idle') // idle | loading | ready | error
   const [error, setError] = useState(null)
 
   const stop = useCallback(() => {
+    requestRef.current += 1 // cancel any camera request still waiting
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null
@@ -17,12 +19,14 @@ export function useCamera(enabled) {
   }, [])
 
   const start = useCallback(async () => {
+    const myRequest = ++requestRef.current
     setError(null)
 
     if (!window.isSecureContext) {
       setStatus('error')
       setError({
         code: 'insecure',
+        title: 'Not secure',
         message: 'Camera needs HTTPS or localhost. Open the site on a secure URL.',
       })
       return
@@ -32,24 +36,46 @@ export function useCamera(enabled) {
       setStatus('error')
       setError({
         code: 'unsupported',
-        message: 'Your browser does not support the camera API.',
+        title: 'Camera not supported',
+        message: 'Your browser does not support the camera API. Try Chrome or Safari.',
       })
       return
     }
 
     setStatus('loading')
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      })
+      let stream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        })
+      } catch (firstErr) {
+        if (firstErr?.name === 'NotAllowedError') throw firstErr
+        // Try again with the simplest setting
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      }
+
+      // An old request finished late: turn this camera off and stop here
+      if (myRequest !== requestRef.current) {
+        stream.getTracks().forEach((t) => t.stop())
+        return
+      }
+
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
+      const video = videoRef.current
+      if (video) {
+        video.srcObject = stream
+        try {
+          await video.play()
+        } catch (playErr) {
+          console.warn('video.play() failed:', playErr)
+        }
       }
       setStatus('ready')
     } catch (err) {
+      if (myRequest !== requestRef.current) return
+      console.error('Camera error:', err?.name, err?.message)
       setStatus('error')
       const name = err?.name || 'Error'
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {

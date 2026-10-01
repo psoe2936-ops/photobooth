@@ -157,29 +157,37 @@ export default function BoothScreen({
         </div>
 
         <div className="relative overflow-hidden rounded-3xl border-4 border-ink/10 bg-black shadow-soft-lg">
-          {!uploadMode && (
-            <>
-              {status === 'loading' && (
-                <p className="flex aspect-[3/4] items-center justify-center text-white">Starting camera…</p>
-              )}
-              {status === 'error' && error && (
-                <CameraError error={error} onUpload={openUpload} onRetry={start} />
-              )}
-              {status !== 'error' && status !== 'loading' && (
-                <video
-                  ref={videoRef}
-                  className="aspect-[3/4] w-full scale-x-[-1] object-cover"
-                  style={filterStyle}
-                  playsInline
-                  muted
-                  autoPlay
-                  aria-label="Live camera preview"
-                />
-              )}
-              <Countdown value={countdown} />
-              {flash && <div className="flash-overlay" aria-hidden="true" />}
-            </>
-          )}
+         {!uploadMode && (
+  <div className="relative aspect-[3/4] w-full">
+    {/* Always render the video so the camera can attach to it */}
+    <video
+      ref={videoRef}
+      className={`h-full w-full scale-x-[-1] object-cover ${
+        status === 'error' ? 'invisible' : ''
+      }`}
+      style={filterStyle}
+      playsInline
+      muted
+      autoPlay
+      aria-label="Live camera preview"
+    />
+
+    {status === 'loading' && (
+      <p className="absolute inset-0 flex items-center justify-center bg-black text-white">
+        Starting camera…
+      </p>
+    )}
+
+    {status === 'error' && error && (
+      <div className="absolute inset-0">
+        <CameraError error={error} onUpload={openUpload} onRetry={start} />
+      </div>
+    )}
+
+    <Countdown value={countdown} />
+    {flash && <div className="flash-overlay" aria-hidden="true" />}
+  </div>
+)}
           {uploadMode && (
             <div className="flex aspect-[3/4] flex-col items-center justify-center gap-3 bg-lavender/30 p-6 text-center">
               <p className="font-display text-lg font-semibold text-ink">Upload mode</p>
